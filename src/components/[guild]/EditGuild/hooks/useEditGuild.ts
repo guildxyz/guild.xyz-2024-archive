@@ -7,7 +7,7 @@ import useSubmit from "hooks/useSubmit"
 import { useRouter } from "next/router"
 import { GuildBase } from "types"
 import replacer from "utils/guildJsonReplacer"
-import { EditGuildForm } from "../EditGuildDrawer"
+import { EditGuildForm } from "../types"
 
 type Props = {
   onSuccess?: () => void
@@ -393,7 +393,7 @@ const useEditGuild = ({ onSuccess, guildId }: Props = {}) => {
         guildUpdateResult?.urlName &&
         guildUpdateResult.urlName !== guild?.urlName
       ) {
-        router.push(guildUpdateResult.urlName)
+        router.push(`/${guildUpdateResult.urlName}/dashboard`)
       }
     },
     onError: (err) => showErrorToast(err),

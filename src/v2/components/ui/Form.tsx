@@ -80,7 +80,7 @@ const FormItem = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
 
     return (
       <FormItemContext.Provider value={{ id }}>
-        <div ref={ref} className={cn("space-y-2", className)} {...props} />
+        <div ref={ref} className={cn("flex flex-col", className)} {...props} />
       </FormItemContext.Provider>
     )
   }
@@ -90,16 +90,24 @@ FormItem.displayName = "FormItem"
 const FormLabel = forwardRef<
   ElementRef<typeof LabelPrimitive.Root>,
   ComponentPropsWithoutRef<typeof LabelPrimitive.Root>
->(({ className, ...props }, ref) => {
+>(({ className, children, ...props }, ref) => {
   const { formItemId } = useFormField()
 
   return (
     <Label
       ref={ref}
-      className={cn("text-md", className)}
+      className={cn(
+        "group mb-2 text-md aria-disabled:text-muted-foreground ",
+        className
+      )}
       htmlFor={formItemId}
       {...props}
-    />
+    >
+      {children}
+      <span className="ml-1 hidden select-none font-bold text-destructive-subtle-foreground group-aria-required:inline-block">
+        *
+      </span>
+    </Label>
   )
 })
 FormLabel.displayName = "FormLabel"
@@ -134,7 +142,7 @@ const FormDescription = forwardRef<
     <p
       ref={ref}
       id={formDescriptionId}
-      className={cn("text-muted-foreground text-sm", className)}
+      className={cn("mt-2 text-muted-foreground text-sm", className)}
       {...props}
     />
   )
@@ -150,14 +158,14 @@ const FormErrorMessage = forwardRef<
   const [debounceBody] = useDebounceValue(body, 200)
 
   return (
-    <Collapsible open={!!error}>
+    <Collapsible open={!!body}>
       <CollapsibleContent>
         <p
           ref={ref}
           id={formMessageId}
           // TODO: not sure if it is a good idea to use "destructive-subtle-foreground" here? Should we add a completely new CSS variable instead?
           className={cn(
-            "font-medium text-[0.8rem] text-destructive-subtle-foreground",
+            "pt-2 font-medium text-[0.8rem] text-destructive-subtle-foreground",
             className
           )}
           {...props}

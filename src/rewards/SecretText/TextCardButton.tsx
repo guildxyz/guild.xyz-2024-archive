@@ -1,7 +1,7 @@
-import { ModalFooter, Text, Tooltip } from "@chakra-ui/react"
-import useGuild from "components/[guild]/hooks/useGuild"
-import useGuildPermission from "components/[guild]/hooks/useGuildPermission"
-import Button from "components/common/Button"
+import { Flex, Tooltip } from "@chakra-ui/react"
+import { useRolePlatform } from "components/[guild]/RolePlatforms/components/RolePlatformProvider"
+import { useRoleMembership } from "components/explorer/hooks/useMembership"
+import { RewardCardButton } from "rewards/components/RewardCardButton"
 import { GuildPlatform, PlatformType, RolePlatformStatus } from "types"
 import {
   getRolePlatformStatus,
@@ -25,12 +25,9 @@ export const claimTextButtonTooltipLabel: Record<
 }
 
 const TextCardButton = ({ platform }: Props) => {
-  const { roles } = useGuild()
-  const { isAdmin } = useGuildPermission()
+  const rolePlatform = useRolePlatform()
+  const { isMember: hasRole } = useRoleMembership(rolePlatform?.roleId)
 
-  const rolePlatform = roles
-    ?.find((r) => r.rolePlatforms.some((rp) => rp.guildPlatformId === platform.id))
-    ?.rolePlatforms?.find((rp) => rp.guildPlatformId === platform?.id)
   const {
     onSubmit,
     isLoading,
@@ -46,25 +43,26 @@ const TextCardButton = ({ platform }: Props) => {
   return (
     <>
       <Tooltip
-        isDisabled={!isButtonDisabled}
+        isDisabled={!isButtonDisabled || !hasRole}
         label={claimTextButtonTooltipLabel[getRolePlatformStatus(rolePlatform)]}
         hasArrow
-        shouldWrapChildren
       >
-        <Button
-          onClick={() => {
-            onOpen()
-            if (!response) onSubmit()
-          }}
-          isLoading={!rolePlatform || isLoading}
-          loadingText={!rolePlatform ? "Loading..." : "Claiming secret..."}
-          isDisabled={isButtonDisabled}
-          w="full"
-        >
-          {platform.platformId === PlatformType.UNIQUE_TEXT
-            ? "Claim"
-            : "Reveal secret"}
-        </Button>
+        {/* instead of shouldWrapChildren, but with flex so the button always has the right width */}
+        <Flex flexDir="column">
+          <RewardCardButton
+            onClick={() => {
+              onOpen()
+              if (!response) onSubmit()
+            }}
+            isLoading={!rolePlatform || isLoading}
+            loadingText={!rolePlatform ? "Loading..." : "Claiming secret..."}
+            isDisabled={isButtonDisabled}
+          >
+            {platform.platformId === PlatformType.UNIQUE_TEXT
+              ? "Claim"
+              : "Reveal secret"}
+          </RewardCardButton>
+        </Flex>
       </Tooltip>
 
       <ClaimTextModal
@@ -74,17 +72,7 @@ const TextCardButton = ({ platform }: Props) => {
         isLoading={isLoading}
         error={error}
         response={response}
-      >
-        {!isAdmin && response?.uniqueValue && !claimed && (
-          <ModalFooter pt="5" pb="6" px="7">
-            <Text colorScheme="gray" fontSize={"sm"}>
-              By refreshing, the reward will disappear from the highlighted cards at
-              the top of the guild, but you will still be able to access it from it's
-              role anytime
-            </Text>
-          </ModalFooter>
-        )}
-      </ClaimTextModal>
+      />
     </>
   )
 }
